@@ -169,10 +169,6 @@ async function openSoundsDir() {
     }
 }
 
-function updateElement() { 
-
-}
-
 function changeActiveTab(activeTab) { 
     let navbar = document.getElementById('navBar-left');
     let navList = navbar.getElementsByTagName('li');
@@ -183,6 +179,14 @@ function changeActiveTab(activeTab) {
     }
     let newActive = document.getElementById(`${activeTab}Nav`);
     newActive.classList.add('active');
+}
+
+async function hueControls(command, enabled) {
+    let sendCommand = {
+        command: command,
+        enabled: enabled
+    };
+    ipc.invoke('hueControls', sendCommand);
 }
 
 async function populateSettings(settingsPage) {
@@ -320,6 +324,14 @@ async function populateSettings(settingsPage) {
         }
         document.getElementById('cmds').innerHTML = cmdPageHTML;
     }
+    if(settingsPage.toLowerCase() == 'hue') {
+        // get and populate hue settings
+        let huePageHTML = `<div class="card"><div class="card-header">HUE</div><div class="card-body">
+        <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
+        <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>
+        </div></div>`;
+        document.getElementById('hue').innerHTML = huePageHTML;
+    }
     if(settingsPage.toLowerCase() == 'about') {
         let result = await ipc.invoke('getAbout');
         let aboutPageHTML = `<div class="card"><div class="card-header">About</div>`;
@@ -412,7 +424,7 @@ async function saveSoundsForm() {
 }
 
 async function showPage(page) {
-    let pages = ['home','settings','sounds','cmds', 'about'];
+    let pages = ['home','settings','sounds','cmds', 'hue', 'about'];
     let showPage;
     for(let p = 0; p < pages.length; p++) { 
         if(pages[p] == page.toLowerCase()) {

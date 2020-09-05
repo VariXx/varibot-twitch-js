@@ -16,6 +16,7 @@ const { beatGame } = require('./utils/beatGame');
 const { getMultiLink } = require('./utils/multiLink');
 const { isMod } = require('./utils/isMod');
 const { getSpreadsheetInfo } = require('./utils/getSpreadsheetInfo');
+const { colorLoop } = require('./utils/hue/colorLoop');
 const versionNumber = require('./package.json').version;
 
 const { ipcMain, app, BrowserWindow } = require('electron');
@@ -379,7 +380,7 @@ function createWindow() {
 
     win.loadFile('index.html');
     win.setMenu(null);
-    // win.webContents.openDevTools(); // TO DO - comment out before commit 
+    win.webContents.openDevTools(); // TO DO - comment out before commit 
 }
 
 app.whenReady().then(createWindow);
@@ -394,6 +395,20 @@ app.on('activate', () => {
 if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
 }
+});
+
+ipcMain.handle('hueControls', async (event, args) => {
+    let bridgeIP = `10.0.0.9`;
+    let bridgeUser = `5ye64iKdgtsbASiNg0BgA3t6teIMO71bKlYa78CH`;
+    if(args.command == 'colorLoop') {
+        if(args.enabled) {
+            enabled = true;
+        }
+        else {
+            enabled = false;
+        }
+        await colorLoop(bridgeIP, bridgeUser, 9, enabled);
+    }
 });
 
 ipcMain.handle('runAd', async (event) => {
