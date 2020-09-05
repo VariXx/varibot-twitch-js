@@ -17,9 +17,13 @@ const { getMultiLink } = require('./utils/multiLink');
 const { isMod } = require('./utils/isMod');
 const { getSpreadsheetInfo } = require('./utils/getSpreadsheetInfo');
 const { colorLoop } = require('./utils/hue/colorLoop');
+const { getHueSettings } = require('./utils/hue/getHueSettings');
+const { createBridgeUser } = require('./utils/hue/createBridgeUser');
 const versionNumber = require('./package.json').version;
 
 const { ipcMain, app, BrowserWindow } = require('electron');
+const { createBrotliCompress } = require('zlib');
+const { setHueSettings } = require('./utils/hue/setHueSettings');
 // const ipcMain = ipcMain;
 var win = null;
 
@@ -27,11 +31,13 @@ var win = null;
 let client = null;
 let commands = {};
 let botSettings = {};
+var hueSettings = {};
 let randomSounds = [];
 let readyToConnect = true;
 let channelPointsSounds = {};
 let channelPointsFilenames = []; // add beat game sound to this
 const soundsDir = `${app.getPath('appData')}\\varibot\\sounds`;
+const hueSettingsFile = `${app.getPath('appData')}\\varibot\\hueSettings.json`;
 
 let googleCredsExist = false;
 const googleCredsFilePath = `${app.getPath('appData')}\\varibot\\googleCreds.json`;
@@ -395,6 +401,59 @@ app.on('activate', () => {
 if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
 }
+});
+
+async function reloadHueSettings() {
+    hueSettings = {};
+    hueSettings = await getHueSettings(hueSettingsFile);
+}
+
+ipcMain.handle('hueSettings', async (event, args) => {
+    let returnResult = {};
+    await reloadHueSettings();
+    if(hueSettings === undefined && args.command != 'setHueSetting') {
+        returnResult.success = false;
+        returnResult.message = 'HUE settings file does not exist. Please set an IP and create a bridge user.';
+        return returnResult;
+    }
+    if(args.command == 'setHueSetting') {
+        const result = await setHueSettings(hueSettingsFile, args.setting, args.newValue);
+        await reloadHueSettings();
+        if(result) {
+            returnResult.success = true;
+        }   
+        else {
+            returnResult.success = false;
+        }
+        console.log(hueSettings);
+    }    
+    if(args.command == 'getHueSettings') {
+        await reloadHueSettings();
+        // console.log(hueSettings);
+        if(hueSettings !== undefined) {
+            returnResult.success = true,
+            returnResult.hueSettings = hueSettings
+        }
+        else {
+            returnResult.success = false
+        }
+    }
+    else if(args.command == 'createUser') {
+        const newHueUser = await createBridgeUser(hueSettings.bridgeIP, `VariBot`); 
+        if(newHueUser.created) {
+            hueSettings.username = newHueUser.username;
+            // console.log(`Created hue username ${hueSettings.username}`);
+            await setHueSettings(hueSettingsFile, 'username', hueSettings.username);
+            await reloadHueSettings();
+            returnResult.success = true;
+            returnResult.hueSettings = hueSettings;
+        }
+        else {
+            returnResult.success = false;
+            returnResult.message = newHueUser.message;
+        }
+    }
+    return returnResult;
 });
 
 ipcMain.handle('hueControls', async (event, args) => {

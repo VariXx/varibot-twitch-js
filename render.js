@@ -189,6 +189,37 @@ async function hueControls(command, enabled) {
     ipc.invoke('hueControls', sendCommand);
 }
 
+async function setHueSettings(setting, newValue) {
+    let sendMsg = {
+        command: 'setHueSetting',
+        setting: setting,
+        newValue: newValue
+    };
+    let response = await ipc.invoke('hueSettings', sendMsg);
+    console.log(response);    
+}
+
+async function getHueSettings() {
+    let sendMsg = { command: 'getHueSettings' };
+    let response = await ipc.invoke('hueSettings', sendMsg);
+    console.log(response);
+    return response.hueSettings;
+}
+
+async function createHueUser() {
+    let sendMsg = { command: 'createUser' };    
+    let response = await ipc.invoke('hueSettings', sendMsg);
+    console.log(response);
+    if(response.success) {
+        // handle success
+    }
+    else {
+        if(response.message.includes('link button not pressed')) {
+            document.getElementById('hue').innerHTML += 'Press link button on bridge and try again';
+        }
+    }    
+}
+
 async function populateSettings(settingsPage) {
     if(settingsPage.toLowerCase() == 'home') { 
         // no settings 
@@ -329,6 +360,10 @@ async function populateSettings(settingsPage) {
         let huePageHTML = `<div class="card"><div class="card-header">HUE</div><div class="card-body">
         <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
         <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>
+        <button class="btn btn-primary btn-sm" onclick="getHueSettings()">Get Settings</button>
+        <button class="btn btn-primary btn-sm" onclick="setHueSettings('bridgeIP', '10.0.0.9')">Set bridge IP</button>
+        <button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button>
+        <span class="hueErrors"></span>
         </div></div>`;
         document.getElementById('hue').innerHTML = huePageHTML;
     }
