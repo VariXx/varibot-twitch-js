@@ -415,7 +415,7 @@ async function populateSettings(settingsPage) {
                                 Bits Alert Mode
                                 <select class="form-control" id="bitsAlertsMode">
                                 <option value="solid">Solid color</option>
-                                <option value="random" selected>Random</option>
+                                <option value="random">Random</option>
                                 <option value="randomPerLight">Random (per light)</option>
                                 </select>
                             </div>                        
@@ -423,7 +423,7 @@ async function populateSettings(settingsPage) {
                                 Sub Alert Mode
                                 <select class="form-control" id="subsAlertsMode">
                                 <option value="solid">Solid color</option>
-                                <option value="random" selected>Random</option>
+                                <option value="random">Random</option>
                                 <option value="randomPerLight">Random (per light)</option>
                                 </select>
                             </div>
@@ -452,6 +452,67 @@ async function populateSettings(settingsPage) {
         if(hueSettings !== undefined && hueSettings.bridgeIP !== undefined) { 
             document.getElementById('bridgeIP').value = `${hueSettings.bridgeIP}`;
         }
+        // TO DO - make a function for these instead of repeating 
+        let hueBitsAlerts = await getHueAlertsSettings('bits');
+        for(x in hueBitsAlerts) {
+            if(hueBitsAlerts[x]) {
+                if(x == 'mode') {
+                    let findElement = document.getElementById('bitsAlertsMode');
+                    let findOption = findElement.getElementsByTagName('option');
+                    for(let y = 0; y < findOption.length; y++) {
+                        if(findOption[y].value == hueBitsAlerts.mode) {
+                            findOption[y].selected = true;
+                        }
+                    }
+                }
+                else {
+                    let findElement = document.getElementById(`bitsAlertsEnabled${x}`);               
+                    if(findElement !== undefined) {
+                        findElement.checked = true;
+                    }
+                }
+            }
+        }
+        let hueSubsAlerts = await getHueAlertsSettings('subs');
+        for(x in hueSubsAlerts) {
+            if(hueSubsAlerts[x]) {
+                if(x == 'mode') {
+                    let findElement = document.getElementById('subsAlertsMode');
+                    let findOption = findElement.getElementsByTagName('option');
+                    for(let y = 0; y < findOption.length; y++) {
+                        if(findOption[y].value == hueSubsAlerts.mode) {
+                            findOption[y].selected = true;
+                        }
+                    }
+                }
+                else {
+                    let findElement = document.getElementById(`subsAlertsEnabled${x}`);               
+                    if(findElement !== undefined) {
+                        findElement.checked = true;
+                    }
+                }
+            }
+        }
+        let hueChannelPointsAlerts = await getHueAlertsSettings('channelPoints');
+        for(x in hueChannelPointsAlerts) {
+            if(hueChannelPointsAlerts[x]) {
+                if(x == 'mode') {
+                    let findElement = document.getElementById('channelPointsAlertsMode');
+                    let findOption = findElement.getElementsByTagName('option');
+                    for(let y = 0; y < findOption.length; y++) {
+                        if(findOption[y].value == hueChannelPointsAlerts.mode) {
+                            findOption[y].selected = true;
+                        }
+                    }
+                }
+                else {
+                    let findElement = document.getElementById(`channelPointsAlertsEnabled${x}`);               
+                    if(findElement !== undefined) {
+                        findElement.checked = true;
+                    }
+                }
+            }
+        }
         // get current settings for all alert modes and change current option to selected. search for selects by id and add selected property to the option.        
     }
     if(settingsPage.toLowerCase() == 'about') {
@@ -466,6 +527,19 @@ async function populateSettings(settingsPage) {
         document.getElementById('about').innerHTML = aboutPageHTML;
     }
 
+}
+
+async function updateHueAlertsSettings(alertType, newAlertsSettings) {
+    let sendMsg = {
+        type: alertType,
+        newSettings: newAlertsSettings
+    };
+    ipc.invoke('setHueAlertsSettings', sendMsg);
+}
+
+async function getHueAlertsSettings(alertType) {
+    const result = await ipc.invoke('getHueAlertsSettings', alertType);
+    return result;
 }
 
 async function saveHueSettings() {
@@ -484,7 +558,7 @@ async function saveHueSettings() {
     let bitsAlertsMode = document.getElementById('bitsAlertsMode').value;
     bitsAlertSettings.mode = bitsAlertsMode;
     console.log(bitsAlertSettings);
-    // updateHueBitsAlerts(bitsAlertSettings);
+    updateHueAlertsSettings('bits', bitsAlertSettings);
 
     let subsAlertSettings = {};
     let subsAlerts = document.getElementsByName('subsAlertEnabled');
@@ -500,7 +574,7 @@ async function saveHueSettings() {
     let subsAlertsMode = document.getElementById('subsAlertsMode').value;
     subsAlertSettings.mode = subsAlertsMode;
     console.log(subsAlertSettings);
-    // updateHuesubsAlerts(subsAlertSettings);
+    updateHueAlertsSettings('subs', subsAlertSettings);
 
     let channelPointsAlertSettings = {};
     let channelPointsAlerts = document.getElementsByName('channelPointsAlertEnabled');
@@ -516,7 +590,7 @@ async function saveHueSettings() {
     let channelPointsAlertsMode = document.getElementById('channelPointsAlertsMode').value;
     channelPointsAlertSettings.mode = channelPointsAlertsMode;
     console.log(channelPointsAlertSettings);
-    // updateHuechannelPointsAlerts(channelPointsAlertSettings);
+    updateHueAlertsSettings('channelPoints', channelPointsAlertSettings);
 
     // create functions commented out above to save alert settings in main and render 
 

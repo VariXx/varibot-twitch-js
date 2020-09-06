@@ -38,7 +38,10 @@ let readyToConnect = true;
 let channelPointsSounds = {};
 let channelPointsFilenames = []; // add beat game sound to this
 const soundsDir = `${app.getPath('appData')}\\varibot\\sounds`;
-const hueSettingsFile = `${app.getPath('appData')}\\varibot\\hueSettings.json`;
+const hueSettingsFile = `${app.getPath('appData')}\\varibot\\hue\\hueSettings.json`;
+const hueBitsAlertsSettingsFile = `${app.getPath('appData')}\\varibot\\hue\\hueBitsAlertsSettings.json`;
+const hueSubsAlertsSettingsFile = `${app.getPath('appData')}\\varibot\\hue\\hueSubsAlertsSettings.json`;
+const hueChannelPointsAlertsSettingsFile = `${app.getPath('appData')}\\varibot\\hue\\hueChannelPointsAlertsSettings.json`;
 
 let googleCredsExist = false;
 const googleCredsFilePath = `${app.getPath('appData')}\\varibot\\googleCreds.json`;
@@ -409,6 +412,58 @@ async function reloadHueSettings() {
     hueSettings = {};
     hueSettings = await getHueSettings(hueSettingsFile);
 }
+
+/*
+async function updateHueAlerts(alertType, newAlertsSettings) {
+    let sendMsg = {
+        type: alertType,
+        newSettings: newAlertsSettings
+    };
+    ipc.invoke('setHueAlertsSettings', sendMsg);
+}
+
+async function getHueBitsAlerts(alertType) {
+    const result = await ipc.invoke('getHueAlertsSettings', alertType);
+    return result;
+}
+*/
+
+
+ipcMain.handle('setHueAlertsSettings', async(event, args) => {
+    let settingsFileToChange = null;
+    let newSettings = args.newSettings;
+    if(args.type == 'bits') {
+        settingsFileToChange = hueBitsAlertsSettingsFile;
+    }
+    else if(args.type == 'subs') {
+        settingsFileToChange = hueSubsAlertsSettingsFile;
+    }
+    else if(args.type == 'channelPoints') {
+        settingsFileToChange = hueChannelPointsAlertsSettingsFile;
+    }
+    if(settingsFileToChange !== null) {
+        for(x in newSettings) {
+            await setHueSettings(settingsFileToChange, x, newSettings[x]);
+        }
+    }
+});
+
+ipcMain.handle('getHueAlertsSettings', async(event, args) => {
+    let settingsFileToRead = null;
+    if(args == 'bits') {
+        settingsFileToRead = hueBitsAlertsSettingsFile;
+    }
+    else if(args == 'subs') {
+        settingsFileToRead = hueSubsAlertsSettingsFile;
+    }
+    else if(args == 'channelPoints') {
+        settingsFileToRead = hueChannelPointsAlertsSettingsFile;
+    }    
+    if(settingsFileToRead !== undefined || settingsFileToRead !== null) {
+        const hueBitsAlertsSettings = await getHueSettings(settingsFileToRead);
+        return hueBitsAlertsSettings;
+    }
+});
 
 ipcMain.handle('getAllLights', async(event) => {
     await reloadHueSettings();
