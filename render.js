@@ -384,10 +384,8 @@ async function populateSettings(settingsPage) {
             <div class="input-group-append"><button class="btn btn-primary" type="button" onclick="saveBridgeIP()">Save</button></div></div></div>`;    
         if(hueSettings !== undefined) {        
             if(hueSettings.bridgeIP !== undefined) {
-                // update the bridge IP input box value
                 huePageHTML += `<button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button><span class="font-weight-bold text-danger ml-4" id="hueCreateUserError"></span>`; // you might still need this if it already exists
                 if(hueSettings.username !== undefined) {
-                    // put the rest of the settings here
                     // huePageHTML += `                    
                     // <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
                     // <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
@@ -438,8 +436,6 @@ async function populateSettings(settingsPage) {
                                 </select>
                             </div>
                         </div>`;
-                        // get current settings for all alert modes and change current option to selected. search for selects by id and add selected property to the option.
-
                         huePageHTML += `<button class="btn btn-primary" onclick="saveHueSettings()">Save</button></div></div>`;
                     }
                 }
@@ -456,6 +452,7 @@ async function populateSettings(settingsPage) {
         if(hueSettings !== undefined && hueSettings.bridgeIP !== undefined) { 
             document.getElementById('bridgeIP').value = `${hueSettings.bridgeIP}`;
         }
+        // get current settings for all alert modes and change current option to selected. search for selects by id and add selected property to the option.        
     }
     if(settingsPage.toLowerCase() == 'about') {
         let result = await ipc.invoke('getAbout');
