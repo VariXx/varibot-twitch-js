@@ -529,16 +529,9 @@ ipcMain.handle('hueSettings', async (event, args) => {
 });
 
 ipcMain.handle('hueControls', async (event, args) => {
-    let bridgeIP = `10.0.0.9`;
-    let bridgeUser = `5ye64iKdgtsbASiNg0BgA3t6teIMO71bKlYa78CH`;
+
     if(args.command == 'colorLoop') {
-        if(args.enabled) {
-            enabled = true;
-        }
-        else {
-            enabled = false;
-        }
-        await colorLoop(bridgeIP, bridgeUser, 9, enabled);
+        await colorLoop(args.bridgeIP, args.username, args.light, args.enabled);
     }
 });
 

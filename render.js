@@ -181,10 +181,14 @@ function changeActiveTab(activeTab) {
     newActive.classList.add('active');
 }
 
-async function hueControls(command, enabled) {
+async function hueControls(lightID, command, enabled) {
+    const hueSettings = await getHueSettings;
     let sendCommand = {
+        lightID: lightID,
         command: command,
-        enabled: enabled
+        enabled: enabled,
+        bridgeIP: hueSettings.bridgeIP,
+        username: hueSettings.username
     };
     ipc.invoke('hueControls', sendCommand);
 }
