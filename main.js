@@ -367,6 +367,7 @@ async function startBot() {
                         nonce: nonce,
                         data:  {
                         topics: [`channel-points-channel-v1.${channelId}`, `channel-bits-events-v2.${channelId}`],
+                        // topics: [`channel-points-channel-v1.${channelId}`, `channel-bits-events-v2.${channelId}`, `channel-subscribe-events-v1.${channelId}`], // token doesn't have scope
                         auth_token: botSettings.token
                         }
                     };
@@ -772,11 +773,29 @@ function pubsubHandle(msg) {
             proecssReward(pubsubMessage);
         }
         if(msg.data.topic.includes('channel-bits-events-v2')) {
+            console.log(pubsubMessage);
             console.log(`message was a cheer`);
             let bitsUser = pubsubMessage.user_name; 
             let bitsAmount = pubsubMessage.bits_used;
             console.log(`${bitsUser} cheered ${bitsAmount}`);
+        }
+        if(msg.data.topic.includes('channel-subscribe-events-v1')) {
             console.log(pubsubMessage);
+            console.log(`message was a sub`);
+            let subGift = pubsubMessage.is_gift;            
+            let subContext = pubsubMessage.context; // resub, subgift (different from is_gift), anonsubgift            
+            if(subGift) { 
+                let subGiftedTo = pubsubMessage.recipient_user_name;   
+                // anon gifts do not have the user_name field 
+                console.log(`Subscription: ${subGiftedTo} was gifted a sub`);
+            }
+            else {
+                let subUser = pubsubMessage.user_name;
+                let subMonths = pubsubMessage.cumulative_months; // gifted might not have this (outdated docs?)
+                let subMonthsStreak = pubsubMessage.streak_months; // gifted might not have this (outdated docs?)
+                console.log(`Subscription: ${subUser} ${subMonths} Months (Streak: ${subMonthsStreak})`);                
+            }
+            
         }
     }
 }
