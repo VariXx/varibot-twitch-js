@@ -377,7 +377,7 @@ async function populateSettings(settingsPage) {
     }
     if(settingsPage.toLowerCase() == 'hue') {
         // get and populate hue settings
-        let huePageHTML = `<div class="card"><div class="card-header">HUE</div><div class="card-body">`;
+        let huePageHTML = `<div class="card my-4"><div class="card-header">HUE</div><div class="card-body">`;
         const hueSettings = await getHueSettings();
         // console.log(hueSettings);   
         huePageHTML += `<div class="form-group><label for="bridgeIP">Bridge IP</label>
@@ -393,13 +393,55 @@ async function populateSettings(settingsPage) {
                     <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
                     <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
                     // <button class="btn btn-primary btn-sm" onclick="getHueLights()">Get Lights</button>
-                    let hueLights = await getAllLights(); 
+                    let hueLights = await getAllLights();
                     if(hueLights !== undefined) {
-                        huePageHTML += `<table><thead><tr><th>ID</th><th>Name</th><th>State</th></thead></tr>`;
+                        huePageHTML += `<table class="table table-hover mx-auto my-4" style="width:80%" id="lightsTable"><thead><tr><th>ID</th><th>Name</th><th>State</th><th>Bits</th><th>Subs</th><th>Channel points</th></thead></tr>`;
                         for(ID in hueLights) {
-                            huePageHTML += `<tr><td>${ID}</td><td>${hueLights[ID].name}</td><td>${hueLights[ID].state.on}</td></tr>`;
+                            huePageHTML += `<tr><td>${ID}</td><td>${hueLights[ID].name}</td><td>${hueLights[ID].state.on}</td>
+                            <td><div class="custom-control custom-switch mx-auto">
+                            <input type="checkbox" class="custom-control-input" name="bitsAlertEnabled" id="bitsAlertsEnabled${ID}">
+                            <label class="custom-control-label" for="bitsAlertsEnabled${ID}"></label>
+                            </div></td>
+                            <td><div class="custom-control custom-switch mx-auto">
+                            <input type="checkbox" class="custom-control-input" name="subsAlertEnabled" id="subsAlertsEnabled${ID}">
+                            <label class="custom-control-label" for="subsAlertsEnabled${ID}"></label>
+                            </div></td>
+                            <td><div class="custom-control custom-switch mx-auto">
+                            <input type="checkbox" class="custom-control-input" name="channelPointsAlertEnabled" id="channelPointsAlertsEnabled${ID}">
+                            <label class="custom-control-label" for="channelPointsAlertsEnabled${ID}"></label>
+                            </div></td>
+                            </tr>`;
                         }
                         huePageHTML += `</table>`;
+                        huePageHTML += `<div class="row mx-auto my-4" style="width:80%">
+                            <div class="col">
+                                Sub Alert Mode
+                                <select class="form-control" id="subsAlertsMode">
+                                <option value="solid">Solid color</option>
+                                <option value="random" selected>Random</option>
+                                <option value="randomPerLight">Random (per light)</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                Bits Alert Mode
+                                <select class="form-control" id="bitsAlertsMode">
+                                <option value="solid">Solid color</option>
+                                <option value="random" selected>Random</option>
+                                <option value="randomPerLight">Random (per light)</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                Channel Points Alert Mode
+                                <select class="form-control" id="channelPointsAlertsMode">
+                                <option value="solid">Solid color</option>
+                                <option value="random">Random</option>
+                                <option value="randomPerLight">Random (per light)</option>         
+                                </select>
+                            </div>
+                        </div>`;
+                        // get current settings for all alert modes and change current option to selected. search for selects by id and add selected property to the option.
+
+                        huePageHTML += `<button class="btn btn-primary" onclick="saveHueSettings()">Save</button></div></div>`;
                     }
                 }
             }
@@ -427,6 +469,35 @@ async function populateSettings(settingsPage) {
         </div></div>`;
         document.getElementById('about').innerHTML = aboutPageHTML;
     }
+
+}
+
+async function saveHueSettings() {
+    // let lightsTable = document.getElementById('lightsTable');
+    let bitsAlertSettings = {};
+
+    let bitsAlerts = document.getElementsByName('bitsAlertEnabled');
+    // console.log(bitsAlerts);
+    for(let x = 0; x < bitsAlerts.length; x++) {
+        // console.log(bitsAlerts[x].checked);
+        
+        let lightID = (bitsAlerts[x].id).replace('bitsAlertsEnabled', '');
+        if(bitsAlerts[x].checked) {            
+            bitsAlertSettings[lightID].enabled = true;
+        }
+        if(bitsAlerts[x].checked) {            
+            bitsAlertSettings[lightID].enabled = false;
+        }
+    }
+    let bitsAlertsMode = document.getElementById('bitsAlertsMode').value;
+    // console.log(bitsAlertsMode);
+    bitsAlertSettings.mode = bitsAlertsMode;
+    // updateHueBitsAlerts(bitsAlertSettings);
+    
+    
+    // console.log(lightsTable);
+   
+    // bitsAlertsEnabled
 }
 
 async function saveCmdForm() {
