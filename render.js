@@ -205,6 +205,17 @@ async function getHueSettings() {
     return response.hueSettings;
 }
 
+async function getAllLights() { 
+    let response = await ipc.invoke('getAllLights');
+    console.log(response);
+    if(response) {
+        return response.hueLights;
+    }
+    else {
+        return false;
+    }
+}
+
 async function saveBridgeIP() {
     let newBridgeIP = document.getElementById('bridgeIP').value;
     if(newBridgeIP.length > 7) { // it's an IP - "0.0.0.0" is 7 characters
@@ -381,6 +392,15 @@ async function populateSettings(settingsPage) {
                     huePageHTML += `                    
                     <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
                     <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
+                    // <button class="btn btn-primary btn-sm" onclick="getHueLights()">Get Lights</button>
+                    let hueLights = await getAllLights(); 
+                    if(hueLights !== undefined) {
+                        huePageHTML += `<table><thead><tr><th>ID</th><th>Name</th><th>State</th></thead></tr>`;
+                        for(ID in hueLights) {
+                            huePageHTML += `<tr><td>${ID}</td><td>${hueLights[ID].name}</td><td>${hueLights[ID].state.on}</td></tr>`;
+                        }
+                        huePageHTML += `</table>`;
+                    }
                 }
             }
         }

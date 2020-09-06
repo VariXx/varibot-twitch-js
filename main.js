@@ -19,6 +19,7 @@ const { getSpreadsheetInfo } = require('./utils/getSpreadsheetInfo');
 const { colorLoop } = require('./utils/hue/colorLoop');
 const { getHueSettings } = require('./utils/hue/getHueSettings');
 const { createBridgeUser } = require('./utils/hue/createBridgeUser');
+const { getAllLights } = require('./utils/hue/getAllLights');
 const versionNumber = require('./package.json').version;
 
 const { ipcMain, app, BrowserWindow } = require('electron');
@@ -408,6 +409,22 @@ async function reloadHueSettings() {
     hueSettings = {};
     hueSettings = await getHueSettings(hueSettingsFile);
 }
+
+ipcMain.handle('getAllLights', async(event) => {
+    await reloadHueSettings();
+    const lights = await getAllLights(hueSettings.bridgeIP, hueSettings.username);
+    let returnResult = {};
+    if(lights !== undefined) {
+        returnResult = {
+            success: true,
+            hueLights: lights
+        };
+    }
+    else {
+        returnResult = { success: false };
+    }
+    return returnResult;
+});
 
 ipcMain.handle('hueSettings', async (event, args) => {
     let returnResult = {};
