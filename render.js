@@ -527,6 +527,7 @@ async function populateSettings(settingsPage) {
         <p>Random sounds loaded: ${result.randomSoundsCount}</p>
         <p>Channel reward sounds loaded: ${result.channelPointsSoundsCount}</p>
         <p>Google creds file loaded: ${result.googleCredsExist}</p>
+        <p>Nonce: ${result.nonce}</p>
         </div></div>`;
         document.getElementById('about').innerHTML = aboutPageHTML;
     }

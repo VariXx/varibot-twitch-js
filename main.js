@@ -1,5 +1,6 @@
 const fs = require('fs');
 const tmi = require('tmi.js');
+const crypto = require('crypto');
 const WebSocket = require('ws');
 const twitchAPI = require('./utils/api');
 const pubsubSocket = new WebSocket('wss://pubsub-edge.twitch.tv');
@@ -32,6 +33,7 @@ var win = null;
 let client = null;
 let commands = {};
 let botSettings = {};
+var nonce;
 var hueSettings = {};
 var hueBitsAlertsSettings = {};
 var hueSubsAlertsSettings = {};
@@ -353,12 +355,16 @@ async function startBot() {
             await botSettingsDB.sync();
             let botset = await botSettingsDB.findOrCreate({where: {id: 1}}); 
             botSettings = botset[0];  
+            
             if(botSettings !== undefined) {
                 try {
                     let channelId = await twitchAPI.getChannelID(botSettings.channel, botSettings.clientId, botSettings.token);
+                    nonce = crypto.randomBytes(32).toString('hex');
+                    console.log(nonce);       
+                    // nonce: "44h1k13746815ab1r2",
                     let connectMsg =  {
                         type: "LISTEN",
-                        nonce: "44h1k13746815ab1r2",
+                        nonce: nonce,
                         data:  {
                         topics: [`channel-points-channel-v1.${channelId}`, `channel-bits-events-v2.${channelId}`],
                         auth_token: botSettings.token
@@ -644,7 +650,8 @@ ipcMain.handle('getAbout', async (event, args) => {
         versionNumber: versionNumber,
         randomSoundsCount: randomSounds.length,
         channelPointsSoundsCount: channelPointsFilenames.length,
-        googleCredsExist: googleCredsExist
+        googleCredsExist: googleCredsExist,
+        nonce: nonce
     }
     return aboutInfo;
 });
@@ -758,6 +765,7 @@ function proecssReward(reward) {
 }
 
 function pubsubHandle(msg) {
+    // console.log(msg);
     if(msg.type == 'MESSAGE') {
         pubsubMessage = JSON.parse(msg.data.message);
         if(pubsubMessage.type == 'reward-redeemed') {
@@ -777,27 +785,6 @@ function pubsubPings() {
     pubsubSocket.send(JSON.stringify({type:"PING"}));
     setTimeout(pubsubPings,120000); // 2 minutes
 }
-
-// pubsubSocket.onopen = async function(e) {
-//     await botSettingsDB.sync();
-//     let botset = await botSettingsDB.findOrCreate({where: {id: 1}}); 
-//     botSettings = botset[0];  
-//     // TO DO - move bot settings to a command or load it all before starting these 
-//     if(botSettings !== undefined) {
-//         let channelId = await twitchAPI.getChannelID(botSettings.channel, botSettings.clientId, botSettings.token);
-//         let connectMsg =  {
-//             type: "LISTEN",
-//             nonce: "44h1k13746815ab1r2",
-//             data:  {
-//             topics: ["channel-points-channel-v1." + channelId],
-//             auth_token: botSettings.token
-//             }
-//         };
-//         pubsubSocket.send(JSON.stringify(connectMsg));
-//         console.log(`Pubsub connected. Listed topics: ${connectMsg.data.topics}`);
-//         pubsubPings();
-//     }
-// };
 
 pubsubSocket.onmessage = function(event)  {
     pubsubResonse = JSON.parse(event.data);
