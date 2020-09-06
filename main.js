@@ -33,6 +33,9 @@ let client = null;
 let commands = {};
 let botSettings = {};
 var hueSettings = {};
+var hueBitsAlertsSettings = {};
+var hueSubsAlertsSettings = {};
+var hueChannelPointsAlertsSettings = {};
 let randomSounds = [];
 let readyToConnect = true;
 let channelPointsSounds = {};
@@ -267,6 +270,7 @@ async function startBot() {
     let botset = await botSettingsDB.findOrCreate({where: {id: 1}}); 
     botSettings = botset[0];
     checkGoogleCreds();
+    await reloadHueSettings();
     if(googleCredsExist) {
         botSettings.googleSheetsClientEmail = googleCreds.client_email;
         botSettings.googleSheetsPrivateKey = googleCreds.private_key;
@@ -356,7 +360,7 @@ async function startBot() {
                         type: "LISTEN",
                         nonce: "44h1k13746815ab1r2",
                         data:  {
-                        topics: ["channel-points-channel-v1." + channelId],
+                        topics: [`channel-points-channel-v1.${channelId}`, `channel-bits-events-v2.${channelId}`],
                         auth_token: botSettings.token
                         }
                     };
@@ -410,24 +414,15 @@ if (BrowserWindow.getAllWindows().length === 0) {
 
 async function reloadHueSettings() {
     hueSettings = {};
+    hueBitsAlertsSettings = {};
+    hueSubsAlertsSettings = {};
+    hueChannelPointsAlertsSettings = {};    
+
     hueSettings = await getHueSettings(hueSettingsFile);
+    hueBitsAlertsSettings = await getHueSettings(hueBitsAlertsSettingsFile);
+    hueSubsAlertsSettings = await getHueSettings(hueSubsAlertsSettingsFile);
+    hueChannelPointsAlertsSettings = await getHueSettings(hueChannelPointsAlertsSettingsFile);
 }
-
-/*
-async function updateHueAlerts(alertType, newAlertsSettings) {
-    let sendMsg = {
-        type: alertType,
-        newSettings: newAlertsSettings
-    };
-    ipc.invoke('setHueAlertsSettings', sendMsg);
-}
-
-async function getHueBitsAlerts(alertType) {
-    const result = await ipc.invoke('getHueAlertsSettings', alertType);
-    return result;
-}
-*/
-
 
 ipcMain.handle('setHueAlertsSettings', async(event, args) => {
     let settingsFileToChange = null;
@@ -767,6 +762,13 @@ function pubsubHandle(msg) {
         pubsubMessage = JSON.parse(msg.data.message);
         if(pubsubMessage.type == 'reward-redeemed') {
             proecssReward(pubsubMessage);
+        }
+        if(msg.data.topic.includes('channel-bits-events-v2')) {
+            console.log(`message was a cheer`);
+            let bitsUser = pubsubMessage.user_name; 
+            let bitsAmount = pubsubMessage.bits_used;
+            console.log(`${bitsUser} cheered ${bitsAmount}`);
+            console.log(pubsubMessage);
         }
     }
 }
