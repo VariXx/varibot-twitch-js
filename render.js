@@ -207,7 +207,6 @@ async function getHueSettings() {
 
 async function getAllLights() { 
     let response = await ipc.invoke('getAllLights');
-    console.log(response);
     if(response) {
         return response.hueLights;
     }
@@ -415,16 +414,16 @@ async function populateSettings(settingsPage) {
                         huePageHTML += `</table>`;
                         huePageHTML += `<div class="row mx-auto my-4" style="width:80%">
                             <div class="col">
-                                Sub Alert Mode
-                                <select class="form-control" id="subsAlertsMode">
+                                Bits Alert Mode
+                                <select class="form-control" id="bitsAlertsMode">
                                 <option value="solid">Solid color</option>
                                 <option value="random" selected>Random</option>
                                 <option value="randomPerLight">Random (per light)</option>
                                 </select>
-                            </div>
+                            </div>                        
                             <div class="col">
-                                Bits Alert Mode
-                                <select class="form-control" id="bitsAlertsMode">
+                                Sub Alert Mode
+                                <select class="form-control" id="subsAlertsMode">
                                 <option value="solid">Solid color</option>
                                 <option value="random" selected>Random</option>
                                 <option value="randomPerLight">Random (per light)</option>
@@ -473,31 +472,57 @@ async function populateSettings(settingsPage) {
 }
 
 async function saveHueSettings() {
-    // let lightsTable = document.getElementById('lightsTable');
+    
     let bitsAlertSettings = {};
-
     let bitsAlerts = document.getElementsByName('bitsAlertEnabled');
-    // console.log(bitsAlerts);
     for(let x = 0; x < bitsAlerts.length; x++) {
-        // console.log(bitsAlerts[x].checked);
-        
         let lightID = (bitsAlerts[x].id).replace('bitsAlertsEnabled', '');
         if(bitsAlerts[x].checked) {            
-            bitsAlertSettings[lightID].enabled = true;
+            bitsAlertSettings[lightID] = true;
         }
-        if(bitsAlerts[x].checked) {            
-            bitsAlertSettings[lightID].enabled = false;
+        else {
+            bitsAlertSettings[lightID] = false;
         }
     }
     let bitsAlertsMode = document.getElementById('bitsAlertsMode').value;
-    // console.log(bitsAlertsMode);
     bitsAlertSettings.mode = bitsAlertsMode;
+    console.log(bitsAlertSettings);
     // updateHueBitsAlerts(bitsAlertSettings);
-    
-    
-    // console.log(lightsTable);
-   
-    // bitsAlertsEnabled
+
+    let subsAlertSettings = {};
+    let subsAlerts = document.getElementsByName('subsAlertEnabled');
+    for(let x = 0; x < subsAlerts.length; x++) {
+        let lightID = (subsAlerts[x].id).replace('subsAlertsEnabled', '');
+        if(subsAlerts[x].checked) {            
+            subsAlertSettings[lightID] = true;
+        }
+        else {
+            subsAlertSettings[lightID] = false;
+        }
+    }
+    let subsAlertsMode = document.getElementById('subsAlertsMode').value;
+    subsAlertSettings.mode = subsAlertsMode;
+    console.log(subsAlertSettings);
+    // updateHuesubsAlerts(subsAlertSettings);
+
+    let channelPointsAlertSettings = {};
+    let channelPointsAlerts = document.getElementsByName('channelPointsAlertEnabled');
+    for(let x = 0; x < channelPointsAlerts.length; x++) {
+        let lightID = (channelPointsAlerts[x].id).replace('channelPointsAlertsEnabled', '');
+        if(channelPointsAlerts[x].checked) {            
+            channelPointsAlertSettings[lightID] = true;
+        }
+        else {
+            channelPointsAlertSettings[lightID] = false;
+        }
+    }
+    let channelPointsAlertsMode = document.getElementById('channelPointsAlertsMode').value;
+    channelPointsAlertSettings.mode = channelPointsAlertsMode;
+    console.log(channelPointsAlertSettings);
+    // updateHuechannelPointsAlerts(channelPointsAlertSettings);
+
+    // create functions commented out above to save alert settings in main and render 
+
 }
 
 async function saveCmdForm() {
