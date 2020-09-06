@@ -234,7 +234,7 @@ async function createHueUser() {
     }
     else {
         if(response.message.includes('link button not pressed')) {
-            document.getElementById('hue').innerHTML += 'Press link button on bridge and try again';
+            document.getElementById('hueCreateUserError').innerHTML += 'Press link button on bridge and try again';
         }
     }    
 }
@@ -385,12 +385,12 @@ async function populateSettings(settingsPage) {
         if(hueSettings !== undefined) {        
             if(hueSettings.bridgeIP !== undefined) {
                 // update the bridge IP input box value
-                huePageHTML += `<button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button>`; // you might still need this if it already exists
+                huePageHTML += `<button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button><span class="font-weight-bold text-danger ml-4" id="hueCreateUserError"></span>`; // you might still need this if it already exists
                 if(hueSettings.username !== undefined) {
                     // put the rest of the settings here
-                    huePageHTML += `                    
-                    <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
-                    <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
+                    // huePageHTML += `                    
+                    // <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
+                    // <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
                     // <button class="btn btn-primary btn-sm" onclick="getHueLights()">Get Lights</button>
                     let hueLights = await getAllLights();
                     if(hueLights !== undefined) {
