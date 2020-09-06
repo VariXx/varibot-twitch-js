@@ -365,7 +365,8 @@ async function startBot() {
         };
         
         win.webContents.executeJavaScript(`updateSoundsList()`);
-        win.webContents.executeJavaScript(`showPage('home')`);        
+        // win.webContents.executeJavaScript(`showPage('home')`);        
+        win.webContents.executeJavaScript(`showPage('hue')`);
     }
     else {
         win.webContents.executeJavaScript(`showPage('settings')`);
@@ -425,7 +426,6 @@ ipcMain.handle('hueSettings', async (event, args) => {
         else {
             returnResult.success = false;
         }
-        console.log(hueSettings);
     }    
     if(args.command == 'getHueSettings') {
         await reloadHueSettings();

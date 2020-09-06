@@ -196,22 +196,31 @@ async function setHueSettings(setting, newValue) {
         newValue: newValue
     };
     let response = await ipc.invoke('hueSettings', sendMsg);
-    console.log(response);    
+    return response;
 }
 
 async function getHueSettings() {
     let sendMsg = { command: 'getHueSettings' };
     let response = await ipc.invoke('hueSettings', sendMsg);
-    console.log(response);
     return response.hueSettings;
+}
+
+async function saveBridgeIP() {
+    let newBridgeIP = document.getElementById('bridgeIP').value;
+    if(newBridgeIP.length > 7) { // it's an IP - "0.0.0.0" is 7 characters
+        const result = await setHueSettings('bridgeIP', newBridgeIP);
+        if(result.success) {
+            updateStatus('success', `Saved HUE bridge IP ${newBridgeIP} to HUE settings.`);
+            showPage('hue');
+        }
+    }
 }
 
 async function createHueUser() {
     let sendMsg = { command: 'createUser' };    
     let response = await ipc.invoke('hueSettings', sendMsg);
-    console.log(response);
     if(response.success) {
-        // handle success
+        showPage('hue');
     }
     else {
         if(response.message.includes('link button not pressed')) {
@@ -357,15 +366,35 @@ async function populateSettings(settingsPage) {
     }
     if(settingsPage.toLowerCase() == 'hue') {
         // get and populate hue settings
-        let huePageHTML = `<div class="card"><div class="card-header">HUE</div><div class="card-body">
-        <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
-        <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>
-        <button class="btn btn-primary btn-sm" onclick="getHueSettings()">Get Settings</button>
-        <button class="btn btn-primary btn-sm" onclick="setHueSettings('bridgeIP', '10.0.0.9')">Set bridge IP</button>
-        <button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button>
-        <span class="hueErrors"></span>
-        </div></div>`;
+        let huePageHTML = `<div class="card"><div class="card-header">HUE</div><div class="card-body">`;
+        const hueSettings = await getHueSettings();
+        // console.log(hueSettings);   
+        huePageHTML += `<div class="form-group><label for="bridgeIP">Bridge IP</label>
+        <div class="input-group mb-3"><input type="text" class="form-control" placeholder="Bridge IP" id="bridgeIP">
+            <div class="input-group-append"><button class="btn btn-primary" type="button" onclick="saveBridgeIP()">Save</button></div></div></div>`;    
+        if(hueSettings !== undefined) {        
+            if(hueSettings.bridgeIP !== undefined) {
+                // update the bridge IP input box value
+                huePageHTML += `<button class="btn btn-primary btn-sm" onclick="createHueUser()">Create bridge user</button>`; // you might still need this if it already exists
+                if(hueSettings.username !== undefined) {
+                    // put the rest of the settings here
+                    huePageHTML += `                    
+                    <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', true)">Color Loop on</button>
+                    <button class="btn btn-primary btn-sm" onclick="hueControls('colorLoop', false)">Color Loop off</button>`;
+                }
+            }
+        }
+        // huePageHTML += `
+
+        // <button class="btn btn-primary btn-sm" onclick="getHueSettings()">Get Settings</button>
+        // <button class="btn btn-primary btn-sm" onclick="setHueSettings('bridgeIP', '10.0.0.9')">Set bridge IP</button>
+        
+        // <span class="hueErrors"></span>
+        // </div></div>`;
         document.getElementById('hue').innerHTML = huePageHTML;
+        if(hueSettings !== undefined && hueSettings.bridgeIP !== undefined) { 
+            document.getElementById('bridgeIP').value = `${hueSettings.bridgeIP}`;
+        }
     }
     if(settingsPage.toLowerCase() == 'about') {
         let result = await ipc.invoke('getAbout');

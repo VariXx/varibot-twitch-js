@@ -7,7 +7,6 @@ async function setHueSettings(hueSettingsFile, setting, newValue) {
     if(fs.existsSync(hueSettingsFile)) {
         let foundSetting = false;
         const oldSettings = await getHueSettings(hueSettingsFile);
-        console.log(oldSettings);
         for(let key in oldSettings) {
             if(key == setting) { 
                 newSettings[key] = newValue;
@@ -20,7 +19,6 @@ async function setHueSettings(hueSettingsFile, setting, newValue) {
         if(!foundSetting) {
             newSettings[setting] = newValue;
         }
-        console.log(newSettings);
     }
     else {
         newSettings[setting] = newValue;
