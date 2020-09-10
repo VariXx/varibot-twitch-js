@@ -746,7 +746,7 @@ function playRandomSound() {
     return randomSound;
 }
 
-function proecssReward(reward) {
+async function proecssReward(reward) {
     statusMsg(`reward`, 'Reward ' + reward.data.redemption.reward.title + ' was redeemed by ' + reward.data.redemption.user.display_name + ' for ' + reward.data.redemption.reward.cost + ' points');
     if(reward.data.redemption.reward.title.toLowerCase() == 'random sound') {
         // add a while loop to re-roll random if it picks the same sound twice or the beat game sound
@@ -763,14 +763,20 @@ function proecssReward(reward) {
             }   
         }
     }
+    if(reward.data.redemption.reward.title.toLowerCase() == 'color loop') {
+        await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, true);
+        setTimeout(async() => {
+            await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, false);
+        }, 10000);
+    }
 }
 
-function pubsubHandle(msg) {
+async function pubsubHandle(msg) {
     // console.log(msg);
     if(msg.type == 'MESSAGE') {
         pubsubMessage = JSON.parse(msg.data.message);
         if(pubsubMessage.type == 'reward-redeemed') {
-            proecssReward(pubsubMessage);
+            await proecssReward(pubsubMessage);
         }
         if(msg.data.topic.includes('channel-bits-events-v2')) {
             console.log(pubsubMessage);
@@ -805,9 +811,9 @@ function pubsubPings() {
     setTimeout(pubsubPings,120000); // 2 minutes
 }
 
-pubsubSocket.onmessage = function(event)  {
+pubsubSocket.onmessage = async function(event)  {
     pubsubResonse = JSON.parse(event.data);
-    pubsubHandle(pubsubResonse);
+    await pubsubHandle(pubsubResonse);
 };
 
 // pubsub end
