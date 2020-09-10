@@ -765,20 +765,23 @@ async function proecssReward(reward) {
         }
     }
     if(reward.data.redemption.reward.title.toLowerCase() == 'color loop') {
-        const oldLightStatus = await getLight(hueSettings.bridgeIP, hueSettings.username, 9);
-        // console.log(oldLightStatus);
         await reloadHueSettings();
         for(light in hueChannelPointsAlertsSettings) {
-            // console.log(light);
             if(light != 'mode' && hueChannelPointsAlertsSettings[light]) {
-                // console.log(hueChannelPointsAlertsSettings[light]);
-                console.log(light);
                 await colorLoop(hueSettings.bridgeIP, hueSettings.username, light, true);
+                statusMsg('info', `Enabled color loop on light ${x}`);                
                 setTimeout((x) => {
-                    console.log(`Resetting light ${x}`);
+                    statusMsg('info', `Disabled color loop on light ${x}`);
                     colorLoop(hueSettings.bridgeIP, hueSettings.username, x, false);
-                }, 10000, light);
+                }, 60000, light);
             }
+        }
+    }
+    if(reward.data.redemption.reward.title.toLowerCase() == 'light color') {
+        
+        await reloadHueSettings();
+        for(light in hueChannelPointsAlertsSettings) {
+            // change color and set timer to reset 
         }
     }
 }
