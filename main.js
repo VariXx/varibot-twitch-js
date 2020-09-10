@@ -19,6 +19,7 @@ const { isMod } = require('./utils/isMod');
 const { getSpreadsheetInfo } = require('./utils/getSpreadsheetInfo');
 const { colorLoop } = require('./utils/hue/colorLoop');
 const { getHueSettings } = require('./utils/hue/getHueSettings');
+const { getLight } = require('./utils/hue/getLight');
 const { createBridgeUser } = require('./utils/hue/createBridgeUser');
 const { getAllLights } = require('./utils/hue/getAllLights');
 const versionNumber = require('./package.json').version;
@@ -764,10 +765,21 @@ async function proecssReward(reward) {
         }
     }
     if(reward.data.redemption.reward.title.toLowerCase() == 'color loop') {
-        await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, true);
-        setTimeout(async() => {
-            await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, false);
-        }, 10000);
+        const oldLightStatus = await getLight(hueSettings.bridgeIP, hueSettings.username, 9);
+        // console.log(oldLightStatus);
+        await reloadHueSettings();
+        for(light in hueChannelPointsAlertsSettings) {
+            // console.log(light);
+            if(light != 'mode' && hueChannelPointsAlertsSettings[light]) {
+                // console.log(hueChannelPointsAlertsSettings[light]);
+                console.log(light);
+                await colorLoop(hueSettings.bridgeIP, hueSettings.username, light, true);
+                setTimeout((x) => {
+                    console.log(`Resetting light ${x}`);
+                    colorLoop(hueSettings.bridgeIP, hueSettings.username, x, false);
+                }, 10000, light);
+            }
+        }
     }
 }
 
