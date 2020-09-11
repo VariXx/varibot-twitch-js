@@ -1,7 +1,7 @@
 const { bridgePut } = require('./bridgePut');
 
 async function setLightColor(bridgeIP, username, color, lightId) {
-    let newColor = errorColor;
+    let newColor = [0.692,0.308]; // red for error 
     for(let key in colors) { 
         if(key.toLowerCase() == color) {
             newColor = colors[key];
