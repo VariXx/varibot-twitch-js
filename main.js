@@ -116,6 +116,9 @@ async function runCommand(targetChannel, fromMod, context, inputCmd, args) {
         else if(cmd == 'list') {
             client.say(targetChannel, `https://docs.google.com/spreadsheets/d/${botSettings.beatSpreadSheetID}`);
         }
+        else if(cmd == 'colors') {
+            client.say(targetChannel, `https://docs.google.com/spreadsheets/d/1pV2oCgOZOfMm1vHQecCnAkcVc3txb4fPgF3nfzG-vZ4`);
+        }
         else if(cmd == 'multi') { 
             let multiLink = await getMultiLink(botSettings.channel, botSettings.clientId, botSettings.token);
             if(multiLink !== undefined) {
