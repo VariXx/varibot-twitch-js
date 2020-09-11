@@ -21,12 +21,15 @@ const { colorLoop } = require('./utils/hue/colorLoop');
 const { getHueSettings } = require('./utils/hue/getHueSettings');
 const { getLight } = require('./utils/hue/getLight');
 const { createBridgeUser } = require('./utils/hue/createBridgeUser');
+const { setLightColor} = require('./utils/hue/setLightColor');
 const { getAllLights } = require('./utils/hue/getAllLights');
+const hueColors = require('./utils/hue/hueColors.json');
 const versionNumber = require('./package.json').version;
 
 const { ipcMain, app, BrowserWindow } = require('electron');
 const { createBrotliCompress } = require('zlib');
 const { setHueSettings } = require('./utils/hue/setHueSettings');
+const { randomNumber } = require('./utils/randomNumber');
 // const ipcMain = ipcMain;
 var win = null;
 
@@ -463,14 +466,14 @@ ipcMain.handle('getHueAlertsSettings', async(event, args) => {
         settingsFileToRead = hueChannelPointsAlertsSettingsFile;
     }    
     if(settingsFileToRead !== undefined || settingsFileToRead !== null) {
-        const hueBitsAlertsSettings = await getHueSettings(settingsFileToRead);
+        let hueBitsAlertsSettings = await getHueSettings(settingsFileToRead);
         return hueBitsAlertsSettings;
     }
 });
 
 ipcMain.handle('getAllLights', async(event) => {
     await reloadHueSettings();
-    const lights = await getAllLights(hueSettings.bridgeIP, hueSettings.username);
+    let lights = await getAllLights(hueSettings.bridgeIP, hueSettings.username);
     let returnResult = {};
     if(lights !== undefined) {
         returnResult = {
@@ -493,7 +496,7 @@ ipcMain.handle('hueSettings', async (event, args) => {
         return returnResult;
     }
     if(args.command == 'setHueSetting') {
-        const result = await setHueSettings(hueSettingsFile, args.setting, args.newValue);
+        let result = await setHueSettings(hueSettingsFile, args.setting, args.newValue);
         await reloadHueSettings();
         if(result) {
             returnResult.success = true;
@@ -514,7 +517,7 @@ ipcMain.handle('hueSettings', async (event, args) => {
         }
     }
     else if(args.command == 'createUser') {
-        const newHueUser = await createBridgeUser(hueSettings.bridgeIP, `VariBot`); 
+        let newHueUser = await createBridgeUser(hueSettings.bridgeIP, `VariBot`); 
         if(newHueUser.created) {
             hueSettings.username = newHueUser.username;
             // console.log(`Created hue username ${hueSettings.username}`);
@@ -769,7 +772,7 @@ async function proecssReward(reward) {
         for(light in hueChannelPointsAlertsSettings) {
             if(light != 'mode' && hueChannelPointsAlertsSettings[light]) {
                 await colorLoop(hueSettings.bridgeIP, hueSettings.username, light, true);
-                statusMsg('info', `Enabled color loop on light ${x}`);                
+                statusMsg('info', `Enabled color loop on light ${light}`);                
                 setTimeout((x) => {
                     statusMsg('info', `Disabled color loop on light ${x}`);
                     colorLoop(hueSettings.bridgeIP, hueSettings.username, x, false);
@@ -778,10 +781,53 @@ async function proecssReward(reward) {
         }
     }
     if(reward.data.redemption.reward.title.toLowerCase() == 'light color') {
-        
+        if(reward.data.redemption.user_input !== undefined) {
+            let userColor = reward.data.redemption.user_input.toLowerCase();
+            console.log(`Searching for ${userColor}`);
+            let colorMatches = [];
+            let colorMatchesCount = 0;
+            for(let searchColor in hueColors) {
+                if(searchColor.toLowerCase().includes(userColor)) {
+                    // console.log(`Match: ${searchColor} (${hueColors[searchColor]})`);
+                    colorMatchesCount++;
+                    colorMatches.push(hueColors[searchColor]);
+                }
+            }
+            // console.log(colorMatches);
+            if(colorMatchesCount > 0) {
+                newColor = colorMatches[randomNumber(0, (colorMatches.length - 1))];
+            }
+            else { 
+                console.log(`Can't find color ${userColor}, picking a random color instead.`);
+                let allColors = [];
+                for(let searchColor in hueColors) {
+                    allColors.push(hueColors[searchColor]);
+                }
+                newColor = allColors[randomNumber(0, (allColors.length -1))];                
+            }
+        }
+        else {
+            // no text so pick a random color - reward should require text. you should not get here. 
+            let allColors = [];
+            for(let searchColor in hueColors) {
+                allColors.push(hueColors[searchColor]);
+            }
+            newColor = allColors[randomNumber(0, (allColors.length -1))];                
+        }
+        // console.log(`Picked color ${newColor}`);        
         await reloadHueSettings();
         for(light in hueChannelPointsAlertsSettings) {
-            // change color and set timer to reset 
+            if(light != 'mode' && hueChannelPointsAlertsSettings[light]) {
+                let oldLightInfo = await getLight(hueSettings.bridgeIP, hueSettings.username, light);
+                let oldLightColor = oldLightInfo.state.xy;
+                // console.log(`Old light color: ${oldLightColor}`);
+                statusMsg('info', `Changing light ${light} color to ${newColor}`);
+                await setLightColor(hueSettings.bridgeIP, hueSettings.username, newColor, light);
+                setTimeout((light, oldLightColor) => {
+                    statusMsg('info', `Resetting light ${light} to ${oldLightColor}`);
+                    setLightColor(hueSettings.bridgeIP, hueSettings.username, oldLightColor, light);
+                }, 10000, light, oldLightColor);             
+            }
         }
     }
 }
