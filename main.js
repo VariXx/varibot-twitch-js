@@ -829,7 +829,7 @@ async function proecssReward(reward) {
                 setTimeout((light, oldLightColor) => {
                     statusMsg('info', `Resetting light ${light} to ${oldLightColor}`);
                     setLightColor(hueSettings.bridgeIP, hueSettings.username, oldLightColor, light);
-                }, 10000, light, oldLightColor);             
+                }, 60000, light, oldLightColor);             
             }
         }
     }
