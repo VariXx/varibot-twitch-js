@@ -21,7 +21,8 @@ const { colorLoop } = require('./utils/hue/colorLoop');
 const { getHueSettings } = require('./utils/hue/getHueSettings');
 const { getLight } = require('./utils/hue/getLight');
 const { createBridgeUser } = require('./utils/hue/createBridgeUser');
-const { setLightColor} = require('./utils/hue/setLightColor');
+const { setLightColor } = require('./utils/hue/setLightColor');
+const { flashLight } = require('./utils/hue/flashLight');
 const { getAllLights } = require('./utils/hue/getAllLights');
 const hueColors = require('./utils/hue/hueColors.json');
 const versionNumber = require('./package.json').version;
@@ -770,6 +771,12 @@ async function proecssReward(reward) {
             }   
         }
     }
+    if(reward.data.redemption.reward.title.toLowerCase() == 'test reward') {    
+        await reloadHueSettings();
+        await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, true);
+        await flashLight(hueSettings.bridgeIP, hueSettings.username, 9, 2);
+        await colorLoop(hueSettings.bridgeIP, hueSettings.username, 9, false);
+    }
     if(reward.data.redemption.reward.title.toLowerCase() == 'color loop') {
         await reloadHueSettings();
         for(light in hueChannelPointsAlertsSettings) {
@@ -784,7 +791,7 @@ async function proecssReward(reward) {
         }
     }
     if(reward.data.redemption.reward.title.toLowerCase() == 'light color') {
-        if(reward.data.redemption.user_input !== undefined) {
+        if(reward.data.redemption.user_input !== undefined) {            
             let userColor = reward.data.redemption.user_input.toLowerCase();
             console.log(`Searching for ${userColor}`);
             let colorMatches = [];
