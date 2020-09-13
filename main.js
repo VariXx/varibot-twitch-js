@@ -845,8 +845,8 @@ async function pubsubHandle(msg) {
         if(msg.data.topic.includes('channel-bits-events-v2')) {
             console.log(pubsubMessage);
             console.log(`message was a cheer`);
-            let bitsUser = pubsubMessage.user_name; 
-            let bitsAmount = pubsubMessage.bits_used;
+            let bitsUser = pubsubMessage.data.user_name; // yes, this is actually msg.data.message.data.user_name for bitsv2
+            let bitsAmount = pubsubMessage.data.bits_used;
             console.log(`${bitsUser} cheered ${bitsAmount}`);
         }
         if(msg.data.topic.includes('channel-subscribe-events-v1')) {
