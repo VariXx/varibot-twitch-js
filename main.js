@@ -786,7 +786,7 @@ async function proecssReward(reward) {
                 setTimeout((x) => {
                     statusMsg('info', `Disabled color loop on light ${x}`);
                     colorLoop(hueSettings.bridgeIP, hueSettings.username, x, false);
-                }, 60000, light);
+                }, 300000, light);
             }
         }
     }
@@ -836,7 +836,7 @@ async function proecssReward(reward) {
                 setTimeout((light, oldLightColor) => {
                     statusMsg('info', `Resetting light ${light} to ${oldLightColor}`);
                     setLightColor(hueSettings.bridgeIP, hueSettings.username, oldLightColor, light);
-                }, 60000, light, oldLightColor);             
+                }, 300000, light, oldLightColor);             
             }
         }
     }
