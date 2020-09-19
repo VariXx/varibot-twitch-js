@@ -848,32 +848,33 @@ async function pubsubHandle(msg) {
         pubsubMessage = JSON.parse(msg.data.message);
         if(pubsubMessage.type == 'reward-redeemed') {
             await proecssReward(pubsubMessage);
+            // console.log(msg);
+            // console.log('----');
+            // console.log(pubsubMessage.data);
         }
+        console.log(pubsubMessage);
         if(msg.data.topic.includes('channel-bits-events-v2')) {
-            console.log(pubsubMessage);
             console.log(`message was a cheer`);
-            let bitsUser = pubsubMessage.data.user_name; // yes, this is actually msg.data.message.data.user_name for bitsv2
-            let bitsAmount = pubsubMessage.data.bits_used;
+            let bitsUser = pubsubMessage.data.message.data.user_name;
+            let bitsAmount = pubsubMessage.data.message.data.bits_used;
             console.log(`${bitsUser} cheered ${bitsAmount}`);
         }
-        if(msg.data.topic.includes('channel-subscribe-events-v1')) {
-            console.log(pubsubMessage);
-            console.log(`message was a sub`);
-            let subGift = pubsubMessage.is_gift;            
-            let subContext = pubsubMessage.context; // resub, subgift (different from is_gift), anonsubgift            
-            if(subGift) { 
-                let subGiftedTo = pubsubMessage.recipient_user_name;   
-                // anon gifts do not have the user_name field 
-                console.log(`Subscription: ${subGiftedTo} was gifted a sub`);
-            }
-            else {
-                let subUser = pubsubMessage.user_name;
-                let subMonths = pubsubMessage.cumulative_months; // gifted might not have this (outdated docs?)
-                let subMonthsStreak = pubsubMessage.streak_months; // gifted might not have this (outdated docs?)
-                console.log(`Subscription: ${subUser} ${subMonths} Months (Streak: ${subMonthsStreak})`);                
-            }
-            
-        }
+        // if(msg.data.topic.includes('channel-subscribe-events-v1')) {
+        //     console.log(`message was a sub`);
+        //     let subGift = pubsubMessage.is_gift;            
+        //     let subContext = pubsubMessage.context; // resub, subgift (different from is_gift), anonsubgift            
+        //     if(subGift) { 
+        //         let subGiftedTo = pubsubMessage.recipient_user_name;   
+        //         // anon gifts do not have the user_name field 
+        //         console.log(`Subscription: ${subGiftedTo} was gifted a sub`);
+        //     }
+        //     else {
+        //         let subUser = pubsubMessage.user_name;
+        //         let subMonths = pubsubMessage.cumulative_months; // gifted might not have this (outdated docs?)
+        //         let subMonthsStreak = pubsubMessage.streak_months; // gifted might not have this (outdated docs?)
+        //         console.log(`Subscription: ${subUser} ${subMonths} Months (Streak: ${subMonthsStreak})`);                
+        //     }   
+        // }
     }
 }
 
